@@ -1,8 +1,9 @@
 import time
 from confluent_kafka import Producer, Consumer
 from confluent_kafka.admin import AdminClient
-from message_copy import ClickEvent
+from message import Purchase
 import asyncio
+import json
 
 BROKER_URL = 'PLAINTEXT://localhost:9092'
 
@@ -10,7 +11,7 @@ async def produce(topic_name):
     p = Producer({'bootstrap.servers': BROKER_URL})
 
     while True:
-        event = ClickEvent()
+        event = Purchase()
         p.produce(topic_name, event.serialize())
         print(f"Producer: {event.serialize()}")
         await asyncio.sleep(5.0)
@@ -25,7 +26,8 @@ async def consume(topic_name):
         if message is None:
             print('No message received')
         else:
-            print(f"Consumer: {message.value()}")
+            pur_json = json.loads(message.value())
+            print(f"Consumer: {Purchase(pur_json['username'],pur_json['currency'],pur_json['uri'])}")
         await asyncio.sleep(2.0)
 
 
